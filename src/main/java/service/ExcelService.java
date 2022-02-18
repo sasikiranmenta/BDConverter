@@ -16,6 +16,7 @@ import java.text.DateFormatSymbols;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class ExcelService {
@@ -32,7 +33,9 @@ public class ExcelService {
 
     private static BiFunction<Calendar, Calendar, Boolean> checkValid = (c1, c2) -> c1!=null && c2!=null;
 
-    private static BiFunction<Calendar, Calendar, Boolean> checkContinuity = (previousDate, currentDate) -> ChronoUnit.DAYS.between(previousDate.toInstant(), currentDate.toInstant())==1;
+    private static BiFunction<Calendar, Calendar, Boolean> checkContinuity = (previousDate, currentDate) -> ChronoUnit.DAYS.between(previousDate.toInstant(), currentDate.toInstant())<=1;
+
+    private static Function<Calendar, Boolean> checkSaturday = (date) -> date.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY;
 
 
     public List<BDModel> extractDataFromExcel(File inputFile) {
@@ -58,13 +61,18 @@ public class ExcelService {
                     if (validCellData.test(c) && r.getRowNum() > 1) {
 
                         String cellDate = c.getStringCellValue();
-                        if(once && checkContinuity.apply(lastPeriodDate, getCurrentDate(cellDate, currentPeriodStartDate))) {
+                        if(checkSaturday.apply(getCurrentDate(cellDate, currentPeriodStartDate))){
+                        bdValue = modifyForSaturday(inputScrubbedList, bdValue);
+                        }
+                    else {
+                        if (once && !checkContinuity.apply(lastPeriodDate, getCurrentDate(cellDate, currentPeriodStartDate))) {
                             Calendar temp = (Calendar) lastPeriodDate.clone();
                             temp.add(Calendar.DAY_OF_YEAR, 1);
                             bdValue = setCurrentValue(inputScrubbedList, null, bdValue, currentPeriodStartDate, lastPeriodDate, temp);
                         }
                         bdValue = setCurrentValue(inputScrubbedList, cellDate, bdValue, currentPeriodStartDate, lastPeriodDate, null);
                         once = true;
+                    }
                     } else if (validCellData.test(c) && r.getRowNum() ==1){
                         String date = c.getStringCellValue();
                         setPreviousValues(inputScrubbedList, date, currentPeriodStartDate);
@@ -84,6 +92,12 @@ public class ExcelService {
             System.out.println("Unable to read file");
         }
         return inputScrubbedList;
+    }
+
+    private int modifyForSaturday(List<BDModel> inputScrubbedList, int bdValue) {
+        inputScrubbedList.get(inputScrubbedList.size()-1).setBd(String.valueOf(bdValue));
+        inputScrubbedList.get(inputScrubbedList.size()-2).setBd(String.valueOf(bdValue));
+        return ++bdValue;
     }
 
     private void fillRemainingValues(Calendar lastPeriodDate, int bdValue, List<BDModel> inputScrubbedList, String period) {
