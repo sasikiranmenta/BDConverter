@@ -64,6 +64,7 @@ public class ExcelService {
                             bdValue = setCurrentValue(inputScrubbedList, null, bdValue, currentPeriodStartDate, lastPeriodDate, temp);
                         }
                         bdValue = setCurrentValue(inputScrubbedList, cellDate, bdValue, currentPeriodStartDate, lastPeriodDate, null);
+                        once = true;
                     } else if (validCellData.test(c) && r.getRowNum() ==1){
                         String date = c.getStringCellValue();
                         setPreviousValues(inputScrubbedList, date, currentPeriodStartDate);
