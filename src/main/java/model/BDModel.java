@@ -1,5 +1,7 @@
 package model;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class BDModel {
@@ -8,8 +10,19 @@ public class BDModel {
     private String bd;
     private String year;
 
-    public Date getLookupDate() {
-        return lookupDate;
+    public BDModel() {
+    }
+
+    public BDModel(Date lookupDate, String period, String bd, String year) {
+        this.lookupDate = lookupDate;
+        this.period = period;
+        this.bd = bd;
+        this.year = year;
+    }
+
+    public String getLookupDate() {
+        DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+        return df.format(lookupDate);
     }
 
     public void setLookupDate(Date lookupDate) {
@@ -25,7 +38,7 @@ public class BDModel {
     }
 
     public String getBd() {
-        return bd;
+        return "\""+bd+"BD\"";
     }
 
     public void setBd(String bd) {
