@@ -32,6 +32,8 @@ public class ExcelService {
 
     private static BiFunction<Calendar, Calendar, Boolean> checkValid = (c1, c2) -> c1!=null && c2!=null;
 
+    private static BiFunction<Calendar, Calendar, Boolean> checkContinuity = (previousDate, currentDate) -> ChronoUnit.DAYS.between(previousDate.toInstant(), currentDate.toInstant())==1;
+
 
     public List<BDModel> extractDataFromExcel(File inputFile) {
         List<BDModel> inputScrubbedList = null;
@@ -47,6 +49,7 @@ public class ExcelService {
                 Calendar currentPeriodStartDate =null;
                 Calendar lastPeriodDate = Calendar.getInstance();
                 int bdValue=-14;
+                boolean once = false;
                 for (Row r : dataSheet) {
                     if(bdValue == 0) {
                         bdValue = 1;
