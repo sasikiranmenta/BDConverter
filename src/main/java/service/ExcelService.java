@@ -64,7 +64,7 @@ public class ExcelService {
 
                 }
                 if(checkValid.apply(lastPeriodDate, currentPeriodStartDate)) {
-                    fillRemainingValues(lastPeriodDate, bdValue, inputScrubbedList, String.valueOf(currentPeriodStartDate.get(Calendar.MONTH) + 1));
+                    fillRemainingValues(lastPeriodDate, --bdValue, inputScrubbedList, String.valueOf(currentPeriodStartDate.get(Calendar.MONTH) + 1));
                 }
                 columnNumber++;
             }
@@ -78,8 +78,10 @@ public class ExcelService {
 
     private void fillRemainingValues(Calendar lastPeriodDate, int bdValue, List<BDModel> inputScrubbedList, String period) {
         int lastDate = lastPeriodDate.getActualMaximum(Calendar.DATE);
-        while(lastPeriodDate.get(Calendar.DATE) >= lastDate ) {
+        int date = lastPeriodDate.get(Calendar.DATE);
+        while(date < lastDate ) {
             lastPeriodDate.add(Calendar.DAY_OF_YEAR, 1);
+            date = lastPeriodDate.get(Calendar.DATE);
             inputScrubbedList.add(new BDModel(lastPeriodDate.getTime(), period,
                     String.valueOf(bdValue), String.valueOf(lastPeriodDate.get(Calendar.YEAR))));
         }
@@ -120,9 +122,9 @@ public class ExcelService {
         Calendar currentDate = getCurrentDate(cellDate, currentPeriodStartDate);
         inputScrubbedList.add(new BDModel(currentDate.getTime(), String.valueOf(currentPeriodStartDate.get(Calendar.MONTH)+1),
                 String.valueOf(bdValue), String.valueOf(currentDate.get(Calendar.YEAR))));
-        lastPeriodDate = currentDate;
+        lastPeriodDate.setTime(currentDate.getTime());
         if(isFriday.test(currentDate)) {
-            lastPeriodDate = insertDataForWeekends(currentDate, inputScrubbedList, bdValue, String.valueOf(currentPeriodStartDate.get(Calendar.MONTH)+1));
+            lastPeriodDate.setTime(insertDataForWeekends(currentDate, inputScrubbedList, bdValue, String.valueOf(currentPeriodStartDate.get(Calendar.MONTH)+1)).getTime());
         }
         return ++bdValue;
     }
