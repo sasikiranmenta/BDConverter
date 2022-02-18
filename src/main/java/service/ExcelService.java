@@ -56,8 +56,14 @@ public class ExcelService {
                     }
                     Cell c = r.getCell(columnNumber);
                     if (validCellData.test(c) && r.getRowNum() > 1) {
+
                         String cellDate = c.getStringCellValue();
-                        bdValue = setCurrentValue(inputScrubbedList, cellDate, bdValue, currentPeriodStartDate, lastPeriodDate);
+                        if(once && checkContinuity.apply(lastPeriodDate, getCurrentDate(cellDate, currentPeriodStartDate))) {
+                            Calendar temp = (Calendar) lastPeriodDate.clone();
+                            temp.add(Calendar.DAY_OF_YEAR, 1);
+                            bdValue = setCurrentValue(inputScrubbedList, null, bdValue, currentPeriodStartDate, lastPeriodDate, temp);
+                        }
+                        bdValue = setCurrentValue(inputScrubbedList, cellDate, bdValue, currentPeriodStartDate, lastPeriodDate, null);
                     } else if (validCellData.test(c) && r.getRowNum() ==1){
                         String date = c.getStringCellValue();
                         setPreviousValues(inputScrubbedList, date, currentPeriodStartDate);
@@ -121,8 +127,13 @@ public class ExcelService {
         cell3.setCellValue("YEAR");
     }
 
-    private int setCurrentValue(List<BDModel> inputScrubbedList, String cellDate, int bdValue, Calendar currentPeriodStartDate,Calendar lastPeriodDate) {
-        Calendar currentDate = getCurrentDate(cellDate, currentPeriodStartDate);
+    private int setCurrentValue(List<BDModel> inputScrubbedList, String cellDate, int bdValue, Calendar currentPeriodStartDate,Calendar lastPeriodDate, Calendar missingDate) {
+        Calendar currentDate = null;
+        if(cellDate == null){
+           currentDate = missingDate;
+       } else {
+            currentDate = getCurrentDate(cellDate, currentPeriodStartDate);
+        }
         inputScrubbedList.add(new BDModel(currentDate.getTime(), String.valueOf(currentPeriodStartDate.get(Calendar.MONTH)+1),
                 String.valueOf(bdValue), String.valueOf(currentDate.get(Calendar.YEAR))));
         lastPeriodDate.setTime(currentDate.getTime());
