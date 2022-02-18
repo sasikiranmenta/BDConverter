@@ -130,11 +130,19 @@ public class ExcelService {
     }
 
     private Calendar insertDataForWeekends(Calendar currentDate, List<BDModel> inputScrubbedList, int bdValue, String period) {
-       for(int i=0; i<2;i++) {
-           currentDate.add(Calendar.DAY_OF_WEEK, 1);
-           inputScrubbedList.add(new BDModel(currentDate.getTime(), period,
-                   String.valueOf(bdValue), String.valueOf(currentDate.get(Calendar.YEAR))));
-       }
+        int lastDate = currentDate.getActualMaximum(Calendar.DATE);
+        int date = currentDate.get(Calendar.DATE);
+        if(Math.abs(date-lastDate)>1) {
+            for (int i = 0; i < 2; i++) {
+                currentDate.add(Calendar.DAY_OF_WEEK, 1);
+                inputScrubbedList.add(new BDModel(currentDate.getTime(), period,
+                        String.valueOf(bdValue), String.valueOf(currentDate.get(Calendar.YEAR))));
+            }
+        }else if(Math.abs(lastDate-date) == 1) {
+            currentDate.add(Calendar.DAY_OF_WEEK, 1);
+            inputScrubbedList.add(new BDModel(currentDate.getTime(), period,
+                    String.valueOf(bdValue), String.valueOf(currentDate.get(Calendar.YEAR))));
+        }
        return currentDate;
     }
 
@@ -143,9 +151,9 @@ public class ExcelService {
         String month = cellDate.substring(0,indexOfSlash);
         String day = cellDate.substring(indexOfSlash+1);
         if(isSameYear.apply(month, currentPeriodStartDate)) {
-            return new GregorianCalendar(currentPeriodStartDate.get(Calendar.YEAR)+1, Integer.parseInt(month)-1, Integer.parseInt(day));
+            return new GregorianCalendar(currentPeriodStartDate.get(Calendar.YEAR)+1, Integer.parseInt(month)-1, Integer.parseInt(day.trim()));
         }
-        return new GregorianCalendar(currentPeriodStartDate.get(Calendar.YEAR), Integer.parseInt(month)-1, Integer.parseInt(day));
+        return new GregorianCalendar(currentPeriodStartDate.get(Calendar.YEAR), Integer.parseInt(month)-1, Integer.parseInt(day.trim()));
     }
 
     private void setPreviousValues(List<BDModel> inputScrubbedList, String date, Calendar currentPeriodStartDate) {
