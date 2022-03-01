@@ -61,28 +61,28 @@ public class ExcelService {
                     if (validCellData.test(c) && r.getRowNum() > 1) {
 
                         String cellDate = c.getStringCellValue();
-                        if(checkSaturday.apply(getCurrentDate(cellDate, currentPeriodStartDate))){
+                        if(checkSaturday.apply(getCurrentDate(cellDate, currentPeriodStartDate))){ // check for saturday
                         bdValue = modifyForSaturday(inputScrubbedList, bdValue);
                         }
                     else {
-                        if (once && !checkContinuity.apply(lastPeriodDate, getCurrentDate(cellDate, currentPeriodStartDate))) {
+                        if (once && !checkContinuity.apply(lastPeriodDate, getCurrentDate(cellDate, currentPeriodStartDate))) { // check for public holidays
                             Calendar temp = (Calendar) lastPeriodDate.clone();
                             temp.add(Calendar.DAY_OF_YEAR, 1);
                             bdValue = setCurrentValue(inputScrubbedList, null, bdValue, currentPeriodStartDate, lastPeriodDate, temp);
                         }
-                        bdValue = setCurrentValue(inputScrubbedList, cellDate, bdValue, currentPeriodStartDate, lastPeriodDate, null);
+                        bdValue = setCurrentValue(inputScrubbedList, cellDate, bdValue, currentPeriodStartDate, lastPeriodDate, null); // Normal flow
                         once = true;
                     }
-                    } else if (validCellData.test(c) && r.getRowNum() ==1){
+                    } else if (validCellData.test(c) && r.getRowNum() ==1){ //extracts intial starting date in the sheet for that month
                         String date = c.getStringCellValue();
                         setPreviousValues(inputScrubbedList, date, currentPeriodStartDate);
-                    } else if (validCellData.test(c) && r.getRowNum() == 0) {
+                    } else if (validCellData.test(c) && r.getRowNum() == 0) { // extracts the first row excel sheet for month and year --> Nov21
                         currentPeriodStartDate = getPeriodStartDate(c.getStringCellValue()); //Sets the Calendar to initial date of the month
                     }
 
                 }
-                if(checkValid.apply(lastPeriodDate, currentPeriodStartDate)) {
-                    fillRemainingValues(lastPeriodDate, --bdValue, inputScrubbedList, String.valueOf(currentPeriodStartDate.get(Calendar.MONTH) + 1));
+                if(checkValid.apply(lastPeriodDate, currentPeriodStartDate)) { //fill for remaining days till month end
+                    fillRemainingValues(lastPeriodDate, --bdValue, inputScrubbedList, currentPeriodStartDate);
                 }
                 columnNumber++;
             }
@@ -100,18 +100,18 @@ public class ExcelService {
         return ++bdValue;
     }
 
-    private void fillRemainingValues(Calendar lastPeriodDate, int bdValue, List<BDModel> inputScrubbedList, String period) {
+    private void fillRemainingValues(Calendar lastPeriodDate, int bdValue, List<BDModel> inputScrubbedList, Calendar currentPeriodStartDate) {
         int lastDate = lastPeriodDate.getActualMaximum(Calendar.DATE);
         int date = lastPeriodDate.get(Calendar.DATE);
         while(date < lastDate ) {
             lastPeriodDate.add(Calendar.DAY_OF_YEAR, 1);
             date = lastPeriodDate.get(Calendar.DATE);
-            inputScrubbedList.add(new BDModel(lastPeriodDate.getTime(), period,
+            inputScrubbedList.add(new BDModel(lastPeriodDate.getTime(), String.valueOf(currentPeriodStartDate.get(Calendar.MONTH) + 1),
                     String.valueOf(bdValue), String.valueOf(lastPeriodDate.get(Calendar.YEAR))));
         }
     }
 
-    public Workbook createExcelWithData(List<BDModel> scrubbedList) {
+    public Workbook createExcelWithData(List<BDModel> scrubbedList) { //create excel output sheet
         Workbook workbook = new XSSFWorkbook();
         Sheet workSheet = workbook.createSheet();
         int rowNum =1;
@@ -130,7 +130,7 @@ public class ExcelService {
         return workbook;
     }
 
-    private void intializeSheet(Sheet workSheet) {
+    private void intializeSheet(Sheet workSheet) { //fill header in excelsheet
         Row headerRow = workSheet.createRow(0);
         Cell cell0 = headerRow.createCell(0);
         Cell cell1 = headerRow.createCell(1);
@@ -150,27 +150,27 @@ public class ExcelService {
             currentDate = getCurrentDate(cellDate, currentPeriodStartDate);
         }
         inputScrubbedList.add(new BDModel(currentDate.getTime(), String.valueOf(currentPeriodStartDate.get(Calendar.MONTH)+1),
-                String.valueOf(bdValue), String.valueOf(currentDate.get(Calendar.YEAR))));
+                String.valueOf(bdValue), String.valueOf(currentPeriodStartDate.get(Calendar.YEAR))));
         lastPeriodDate.setTime(currentDate.getTime());
         if(isFriday.test(currentDate)) {
-            lastPeriodDate.setTime(insertDataForWeekends(currentDate, inputScrubbedList, bdValue, String.valueOf(currentPeriodStartDate.get(Calendar.MONTH)+1)).getTime());
+            lastPeriodDate.setTime(insertDataForWeekends(currentDate, inputScrubbedList, bdValue, currentPeriodStartDate).getTime());
         }
         return ++bdValue;
     }
 
-    private Calendar insertDataForWeekends(Calendar currentDate, List<BDModel> inputScrubbedList, int bdValue, String period) {
+    private Calendar insertDataForWeekends(Calendar currentDate, List<BDModel> inputScrubbedList, int bdValue, Calendar currentPeriodStartDate) {
         int lastDate = currentDate.getActualMaximum(Calendar.DATE);
         int date = currentDate.get(Calendar.DATE);
-        if(Math.abs(date-lastDate)>1) {
+        if(Math.abs(date-lastDate) > 1) {
             for (int i = 0; i < 2; i++) {
                 currentDate.add(Calendar.DAY_OF_WEEK, 1);
-                inputScrubbedList.add(new BDModel(currentDate.getTime(), period,
-                        String.valueOf(bdValue), String.valueOf(currentDate.get(Calendar.YEAR))));
+                inputScrubbedList.add(new BDModel(currentDate.getTime(), String.valueOf(currentPeriodStartDate.get(Calendar.MONTH)+1),
+                        String.valueOf(bdValue), String.valueOf(currentPeriodStartDate.get(Calendar.YEAR))));
             }
         }else if(Math.abs(lastDate-date) == 1) {
             currentDate.add(Calendar.DAY_OF_WEEK, 1);
-            inputScrubbedList.add(new BDModel(currentDate.getTime(), period,
-                    String.valueOf(bdValue), String.valueOf(currentDate.get(Calendar.YEAR))));
+            inputScrubbedList.add(new BDModel(currentDate.getTime(), String.valueOf(currentPeriodStartDate.get(Calendar.MONTH)+1),
+                    String.valueOf(bdValue), String.valueOf(currentPeriodStartDate.get(Calendar.YEAR))));
         }
        return currentDate;
     }
