@@ -37,6 +37,8 @@ public class ExcelService {
 
     private static Function<Calendar, Boolean> checkSaturday = (date) -> date.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY;
 
+    private static BiFunction<Calendar, Calendar, Boolean> checkSameDate = (previousDate, currentDate) -> ChronoUnit.DAYS.between(previousDate.toInstant(), currentDate.toInstant())==0;
+
 
     public List<BDModel> extractDataFromExcel(File inputFile) {
         List<BDModel> inputScrubbedList = null;
@@ -62,7 +64,9 @@ public class ExcelService {
 
                         String cellDate = c.getStringCellValue();
                         if(checkSaturday.apply(getCurrentDate(cellDate, currentPeriodStartDate))){ // check for saturday
-                        bdValue = modifyForSaturday(inputScrubbedList, bdValue);
+                            bdValue = modifyForSaturday(inputScrubbedList, bdValue);
+                        } else if (checkSameDate.apply(getCurrentDate(cellDate, currentPeriodStartDate), lastPeriodDate)) {
+                            bdValue++;
                         }
                     else {
                         if (once && !checkContinuity.apply(lastPeriodDate, getCurrentDate(cellDate, currentPeriodStartDate))) { // check for public holidays

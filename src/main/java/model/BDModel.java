@@ -21,7 +21,7 @@ public class BDModel {
     }
 
     public String getLookupDate() {
-        DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+        DateFormat df = new SimpleDateFormat("yyyy-MMM-dd");
         return df.format(lookupDate);
     }
 
