@@ -74,7 +74,8 @@ public class ExcelService {
                     }
                 }
                 if (Boolean.TRUE.equals(checkValid.apply(lastPeriodDate, currentPeriodStartDate))) { //fill the remaining days till month end
-                    fillRemainingValues(lastPeriodDate, --bdValue, inputScrubbedList, currentPeriodStartDate);
+                    bdValue = bdValue == 1 ? -1 : bdValue - 1;
+                    fillRemainingValues(lastPeriodDate, bdValue, inputScrubbedList, currentPeriodStartDate);
                 }
                 columnNumber++;
             }
