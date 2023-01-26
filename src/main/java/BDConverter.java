@@ -12,11 +12,11 @@ public class BDConverter {
 
     public static void main(String args[]){
         ExcelService service = new ExcelService();
-        File f = new File("D:\\BDConverter\\src\\assets\\Book2.xlsx");
+        File f = new File("F:\\projects\\BDConverter\\src\\assets\\ExcelCalendar.xlsx");
         List<BDModel> scrubbedList =  service.extractDataFromExcel(f);
         Workbook workbook = service.createExcelWithData(scrubbedList);
         try {
-            FileOutputStream outputStream = new FileOutputStream("D:\\BDConverter\\src\\assets\\output.xlsx");
+            FileOutputStream outputStream = new FileOutputStream("F:\\projects\\BDConverter\\src\\assets\\output.xlsx");
             workbook.write(outputStream);
             workbook.close();
         } catch (FileNotFoundException e) {
